@@ -1,2 +1,100 @@
 # output-form-ladder
-Output-form escalation ladder: when AI output is hard to read, change the medium instead of rewording. Text (ASD-STE100) -> diagram -> HTML -> explainer video.
+
+**当 AI 的输出「不好懂」时，不要让它再解释一遍，改换呈现形式。**
+
+方法来源：Andrej Karpathy 的推文（`x.com/karpathy/status/2105819303471976479`），经微信公众号「APPSO」转述。原始阶梯为四级：
+
+| 级 | 形式 | 原文核心 |
+|---|---|---|
+| 1 | 受控文字 | 让 AI 用 ASD-STE100 解释；太严时可「按 80% 的标准来写」 |
+| 2 | 图表 / 图片 | 别让 AI 写一大段字了，让它画张图 |
+| 3 | 网页 | 让它用 HTML 输出，得到好看还能交互的网页 |
+| 4 | 讲解视频 | 3Blue1Brown 风格的讲解视频，配 ElevenLabs 旁白 |
+
+本仓库在原阶梯上补齐了落地所需的部分：选型决策表、每级的生成指令与验收标准、升级成本核算、四种「升级反而更糟」的失效模式、API key 处理规则。
+
+---
+
+## 安装
+
+把 `skills/output-form-ladder/` 整个目录放进你的技能目录：
+
+```
+~/.workbuddy/skills/output-form-ladder/SKILL.md
+```
+
+WorkBuddy / Claude Code / OpenCode 等读取 `SKILL.md` frontmatter 的宿主均可直接使用。
+
+**建议同时安装** [`ste-plain-writer`](https://github.com/lklbar666)（本机 `~/.workbuddy/skills/ste-plain-writer/`）—— 它是阶梯第一级的具体规则与可执行检查器。本技能只负责「该用哪一级」，不重复规则。
+
+---
+
+## 用法
+
+**触发词**：「看不懂」「说人话」「画个图」「做成网页」「做个动画/视频讲一下」「解释不清楚」「太长了」「给我个直观点的」。
+
+**手动调用**：
+
+```
+@skill:output-form-ladder
+```
+
+**典型场景**
+
+```
+用户：这个 K8s 架构我看了三遍还是懵
+→ 判定为形式问题（非文字问题）→ 第二级：架构图，标注数据流向
+
+用户：讲讲为什么 TCP 需要三次握手
+→ 需要建立直觉 → 第四级：3Blue1Brown 风格视频（先出旁白稿）
+
+用户：帮我写个 runbook
+→ 内容需要可复制、可跳读 → 第一级受控文字，不升级
+
+用户：REST 和 GraphQL 哪个好
+→ 需要多维对比与筛选 → 第三级：单文件 HTML 表格
+```
+
+---
+
+## 核心原则
+
+**默认起点是文字。** 升级的唯一理由是「读不懂」，不是「想要更好看」。
+
+**「再解释一遍」几乎总是错的。** 它的默认假设是问题出在措辞上。实际多数情况是信息密度超出了纯文字的承载上限——文字必须线性阅读，读者要自己在脑子里重建拓扑、连续量变化和因果链。
+
+**阶梯不是质量高低，是适用内容不同。** 四级各有失效边界：
+
+- 把「是/否」问题做成视频，理解成本从 3 秒变 3 分钟
+- HTML 不可搜索、不可打印、不适合被引用 → 长期查阅用 Markdown
+- 视频强制线性播放 → 操作类教程上是退步
+- 「80% 档」放松的是**词表**，不是**结构** → 放松结构后比不写 STE 更差
+
+---
+
+## 文件
+
+```
+output-form-ladder/
+├── SKILL.md                      技能主体：阶梯、决策表、执行流程、失效模式
+└── references/
+    ├── prompt-templates.md      四级的完整指令模板与验收清单
+    └── failure-modes.md         四种失效模式的完整案例与判据
+```
+
+---
+
+## 与 ste-plain-writer 的分工
+
+| 关注点 | 归谁 |
+|---|---|
+| 该用文字、图、网页还是视频 | **output-form-ladder** |
+| 文字本身怎么写才清楚（词、句长、情态动词） | **ste-plain-writer** |
+
+先判「读不懂」是**不认识这些词**（→ ste-plain-writer）还是**认识但装不下**（→ output-form-ladder）。
+
+---
+
+## License
+
+MIT
